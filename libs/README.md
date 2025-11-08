@@ -1,0 +1,1 @@
+Additional libraries that cannot be added via vcpkg shall be added here
