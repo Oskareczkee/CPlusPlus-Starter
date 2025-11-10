@@ -51,7 +51,7 @@ void create_png_file()
 
     row_pointers = (png_bytep*)malloc(sizeof(png_bytep) * height);
     for (y = 0; y < height; y++)
-        row_pointers[y] = (png_byte*)malloc(width * bit_depth * 3);
+        row_pointers[y] = (png_byte*)malloc(width * (bit_depth / 8) * 3);
 
 
 }
@@ -61,17 +61,18 @@ void write_png_file(char* file_name)
 {
     /* create file */
     FILE* fp = fopen(file_name, "wb");
-    if (!fp)
+    if (fp==NULL)
         abort_("[write_png_file] File %s could not be opened for writing", file_name);
 
-
+    
     /* initialize stuff */
+    
     png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-
     if (!png_ptr)
         abort_("[write_png_file] png_create_write_struct failed");
 
     info_ptr = png_create_info_struct(png_ptr);
+
     if (!info_ptr)
         abort_("[write_png_file] png_create_info_struct failed");
 
@@ -79,6 +80,7 @@ void write_png_file(char* file_name)
         abort_("[write_png_file] Error during init_io");
 
     png_init_io(png_ptr, fp);
+
 
 
     /* write header */
@@ -90,7 +92,6 @@ void write_png_file(char* file_name)
         PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
     png_write_info(png_ptr, info_ptr);
-
 
     /* write bytes */
     if (setjmp(png_jmpbuf(png_ptr)))
@@ -110,6 +111,7 @@ void write_png_file(char* file_name)
         free(row_pointers[y]);
     free(row_pointers);
 
+    png_destroy_write_struct(&png_ptr, NULL);
     fclose(fp);
 }
 
@@ -126,82 +128,6 @@ void write_pixel(int x, int y,
 void bresenham(int i1, int j1, int i2, int j2,
     png_byte cr, png_byte cg, png_byte cb) {
 
-    int m, b, j, P, i;
-
-    if (i2 <= i1) {
-        i = i1; i1 = i2; i2 = i;
-        j = j1; j1 = j2; j2 = j;
-        //i=i1; i1=i2; j2=i;
-        //i=j1; j1=j2; j2=j;
-    }
-
-    if (i2 > i1 && j2 >= j1 && j2 - j1 <= i2 - i1) {
-        printf("przypadek 1\n");
-        m = 2 * (j2 - j1);
-        b = 0;
-        write_pixel(i1, j1, cr, cg, cb);
-        j = j1;
-        P = i2 - i1;
-        for (i = i1 + 1; i < i2; i++) {
-            b = b + m;
-            if (b > P) {
-                j = j + 1;
-                b = b - 2 * P;
-            }
-            write_pixel(i, j, cr, cg, cb);
-        }
-    }
-    else if (i2 > i1 && -j2 >= -j1 && -j2 + j1 <= i2 - i1) {
-        printf("przypadek 2\n");
-        m = 2 * (-j2 + j1);
-        b = 0;
-        write_pixel(i1, j1, cr, cg, cb);
-        j = j1;
-        P = i2 - i1;
-        for (i = i1 + 1; i < i2; i++) {
-            b = b + m;
-            if (b > P) {
-                j = j - 1;
-                b = b - 2 * P;
-            }
-            write_pixel(i, j, cr, cg, cb);
-        }
-    }
-    else if (j2 > j1 && i2 >= j1 && i2 - i1 <= j2 - j1) {
-        printf("przypadek 3\n");
-        m = 2 * (j2 - j1);
-        b = 0;
-        write_pixel(i1, j1, cr, cg, cb);
-        j = j1;
-        P = i2 - i1;
-        for (i = i1 + 1; i < i2; i++) {
-            b = b + m;
-            if (b > P) {
-                j = j + 1;
-                b = b - 2 * P;
-            }
-            write_pixel(i, j, cr, cg, cb);
-        }
-    }
-    else if (-j2 > -j1 && i2 >= i1 && i2 - i1 <= j2 - j1) {
-        printf("przypadek 4\n");
-        m = 2 * (j2 - j1);
-        b = 0;
-        write_pixel(i1, j1, cr, cg, cb);
-        j = j1;
-        P = i2 - i1;
-        for (i = i1 + 1; i < i2; i++) {
-            b = b + m;
-            if (b > P) {
-                j = j + 1;
-                b = b - 2 * P;
-            }
-            write_pixel(i, j, cr, cg, cb);
-        }
-    }
-    else {
-        printf("Nigdy tego nie zobacze!\n");
-    }
 }
 
 void process_file(void)
@@ -214,10 +140,6 @@ void process_file(void)
             ptr[1] = ptr[2] = 255;
         }
     }
-
-    bresenham(300, 100, 10, 10, 255, 0, 0);
-    bresenham(10, 100, 300, 10, 0, 0, 0);
-
 }
 
 

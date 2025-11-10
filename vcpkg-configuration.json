@@ -1,14 +1,13 @@
 {
   "default-registry": {
     "kind": "git",
-    /*Update this to get newest realeases -> https://github.com/microsoft/vcpkg , go to newest commit and copy its SHA*/
     "baseline": "271a5b8850aa50f9a40269cbf3cf414b36e333d6",
     "repository": "https://github.com/microsoft/vcpkg"
   },
     "registries": [
       {
         "kind": "artifact",
-        "location": "https://github.com/microsoft/vcpkg-ce-catalog/archive/refs/heads/main.zip", /*additional packages may be usefull*/
+        "location": "https://github.com/microsoft/vcpkg-ce-catalog/archive/refs/heads/main.zip",
         "name": "microsoft"
       }
     ]

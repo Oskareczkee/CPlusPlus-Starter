@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.30)
 
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>") #we want to use the static runtime
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Release>:Release>")
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL$<$<CONFIG:Debug>:Debug>") #we want to use the static runtime
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL$<$<CONFIG:Release>:Release>")
 
 # The toolchain file setup should ideally be in a CMakePresets.json file,
 # but we'll keep it here for simplicity
@@ -63,7 +63,7 @@ target_link_libraries(Playground PRIVATE
 if(MSVC) #Windows -> Visual Studio, Microsoft compiler
     target_compile_options(Playground PRIVATE
         /W3
-        /MP # multithreaded build
+        /MDd # multithreaded build
         /ZI # program database for edit and continue
     )
 else() #Anything else (GCC)
