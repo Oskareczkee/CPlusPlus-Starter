@@ -12,6 +12,7 @@
 
 #define PNG_DEBUG 3
 #include <png.h>
+#include "algorithms.h"
 
 
 #define OUT_FILE "initials.png"
@@ -115,21 +116,6 @@ void write_png_file(char* file_name)
     fclose(fp);
 }
 
-void write_pixel(int x, int y,
-    png_byte cr, png_byte cg, png_byte cb) {
-    png_byte* row = row_pointers[y];
-    png_byte* ptr = &(row[x * 3]);
-    ptr[0] = cr;
-    ptr[1] = cg;
-    ptr[2] = cb;
-
-}
-//300 100 10 10
-void bresenham(int i1, int j1, int i2, int j2,
-    png_byte cr, png_byte cg, png_byte cb) {
-
-}
-
 void process_file(void)
 {
     for (y = 0; y < height; y++) {
@@ -140,6 +126,25 @@ void process_file(void)
             ptr[1] = ptr[2] = 255;
         }
     }
+
+    struct line_coords polygon_N[] = {
+        {320, 440, 320, 160},
+        {320, 160, 330, 160},
+        {330, 160, 400, 400},
+        {400, 400, 400, 160},
+        {400, 160, 410, 160},
+        {410, 160, 410, 440},
+        {410, 440, 400, 440},
+        {400, 440, 330, 200},
+        {330, 200, 330, 440},
+        {330, 440, 320, 440}
+    };
+
+
+    draw_filled_elipsis(200, 300, 70, 140, new png_color_struct{ 255,0,0 }, row_pointers);
+    draw_filled_elipsis(200, 300, 55, 115, new png_color_struct{ 0,255,255 }, row_pointers);
+
+    fill_color(polygon_N, sizeof(polygon_N) / sizeof(polygon_N[0]), new png_color_struct{ 255,0,0 }, row_pointers);
 }
 
 

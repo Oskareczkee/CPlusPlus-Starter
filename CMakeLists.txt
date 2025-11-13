@@ -33,7 +33,7 @@ file(GLOB_RECURSE Playground_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.inl"
 )
 
-target_sources(Playground PRIVATE ${Playground_SOURCES})
+target_sources(Playground PRIVATE ${Playground_SOURCES} "src/algorithms.h")
 
 # Playground include dirs
 target_include_directories(Playground PRIVATE
