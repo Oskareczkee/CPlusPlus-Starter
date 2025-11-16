@@ -140,9 +140,13 @@ void process_file(void)
         {330, 440, 320, 440}
     };
 
+    //circular background
+    draw_filled_elipsis(300, 300, 200, 200, new png_color_struct{ 0, 0, 100 }, row_pointers);
+    draw_filled_elipsis(300, 300, 180, 180, new png_color_struct{ 220, 220, 255 }, row_pointers);
 
-    draw_filled_elipsis(200, 300, 70, 140, new png_color_struct{ 255,0,0 }, row_pointers);
-    draw_filled_elipsis(200, 300, 55, 115, new png_color_struct{ 0,255,255 }, row_pointers);
+
+    draw_filled_elipsis(230, 300, 70, 140, new png_color_struct{ 255,0,0 }, row_pointers);
+    draw_filled_elipsis(230, 300, 55, 115, new png_color_struct{ 220, 220, 255 }, row_pointers);
 
     fill_color(polygon_N, sizeof(polygon_N) / sizeof(polygon_N[0]), new png_color_struct{ 255,0,0 }, row_pointers);
 }
