@@ -4,6 +4,7 @@
     "dependencies": [
         "sdl3",
         "glew",
+        "glfw3",
         "libpng"
     ]
   }

@@ -17,6 +17,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 find_package(SDL3 CONFIG REQUIRED)
 find_package(GLEW CONFIG REQUIRED)
 find_package(PNG CONFIG REQUIRED)
+find_package(glfw3 CONFIG REQUIRED)
 
 # No C++20 modules
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF) 
@@ -33,7 +34,8 @@ file(GLOB_RECURSE Playground_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.inl"
 )
 
-target_sources(Playground PRIVATE ${Playground_SOURCES} "src/algorithms.h")
+#Added automatically by vsc
+target_sources(Playground PRIVATE ${Playground_SOURCES} "src/primitives/Shape.h" "src/primitives/Shape.cpp" "src/primitives/Triangle.h" "src/primitives/Triangle.cpp" "src/primitives/FilledStar.h" "src/primitives/FilledStar.cpp" "src/primitives/Star.h" "src/primitives/Star.cpp" "src/primitives/FilledCircle.h" "src/primitives/FilledCircle.cpp" "src/primitives/Circle.h" "src/primitives/Circle.cpp" "src/primitives/StarFrame.h" "src/primitives/StarFrame.cpp" "src/primitives/FancyStar.h" "src/utility/Color.h")
 
 # Playground include dirs
 target_include_directories(Playground PRIVATE
@@ -55,6 +57,7 @@ target_link_directories(Playground PRIVATE
 target_link_libraries(Playground PRIVATE
     SDL3::SDL3
     GLEW::GLEW
+    glfw
     PNG::PNG
 )
 
