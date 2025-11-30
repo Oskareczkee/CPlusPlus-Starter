@@ -19,6 +19,7 @@
 class Window{
  public:
     Window(const char*, int, int);
+    ~Window();
     void Initialize(int major_gl_version, int minor_gl_version);
     void Resize(int new_width, int new_height);
     void KeyEvent(int key, int scancode, int action, int mods);

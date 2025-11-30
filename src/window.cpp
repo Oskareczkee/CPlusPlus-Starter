@@ -14,6 +14,12 @@ Window::Window(const char * title, int width, int height){
     height_ = height;
 }
 
+Window::~Window()
+{
+    for (Shape* s : shapes)
+        delete s;
+}
+
 void Window::Initialize(int major_gl_version, int minor_gl_version){
 
     InitGlfwOrDie(major_gl_version, minor_gl_version);
