@@ -1,48 +1,65 @@
 #ifndef WINDOW_H
 #define WINDOW_H
 
-#include <vector>
 #include <cstring>
+#include <ctime>
+
+
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include "primitives/Triangle.h"
-#include "primitives/Shape.h"
-#include "primitives/FilledStar.h"
-#include "primitives/Star.h"
-#include "primitives/FilledCircle.h"
-#include "primitives/Circle.h"
-#include "primitives/StarFrame.h"
-#include "primitives/FancyStar.h"
-#include "utility/Color.h"
-#include "program.h"
+
+#include "cube.h"
+#include "KDron.h"
+#include "cameraprogram.h"
+#include "matma.h"
 
 class Window{
  public:
     Window(const char*, int, int);
-    ~Window();
     void Initialize(int major_gl_version, int minor_gl_version);
     void Resize(int new_width, int new_height);
     void KeyEvent(int key, int scancode, int action, int mods);
     void Run(void);
+
+    void ZoomUp();
+    void ZoomDown();
+    void SetCameraZoom();
+
+    void ChangeToPerspectiveProjection();
+    void ChangeToOrthoPerspective();
+
     operator GLFWwindow*(){return window_;}
  private:
     int width_;
     int height_;
+
+    const float zoom_factor_ = 0.05f;
+    float zoom_ = 0.0f;
+    const float initial_z_translation = -2;
+
+    bool is_using_perspective_projection_ = true;
+
+    bool show_cube_ = true;
     const char* title_;
     GLFWwindow* window_;
 
-    const Color color = { 255,0,255 }; //(3+2+2+1+7)mod10 = 5
+    Cube cube_;
+    KDron kdron_;
+    
+    ModelProgram program_;
+    clock_t last_time_;
 
-    uint32_t current_shape_idx = 0;
-    std::vector<Shape*> shapes;
+    Mat4 view_matrix_;
+    Mat4 projection_matrix_;
 
-    Program program_;
+    void InitModels();
+    void InitPrograms();
+    void SetViewMatrix() const;
+    void SetProjectionMatrix() const;
 
     void InitGlfwOrDie(int major_gl_version,
                        int minor_gl_version);
     void InitGlewOrDie();
-    void InitModels();
-    void InitPrograms();
 };
 
 

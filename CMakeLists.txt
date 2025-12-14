@@ -35,7 +35,7 @@ file(GLOB_RECURSE Playground_SOURCES CONFIGURE_DEPENDS
 )
 
 #Added automatically by vsc
-target_sources(Playground PRIVATE ${Playground_SOURCES} "src/primitives/Shape.h" "src/primitives/Shape.cpp" "src/primitives/Triangle.h" "src/primitives/Triangle.cpp" "src/primitives/FilledStar.h" "src/primitives/FilledStar.cpp" "src/primitives/Star.h" "src/primitives/Star.cpp" "src/primitives/FilledCircle.h" "src/primitives/FilledCircle.cpp" "src/primitives/Circle.h" "src/primitives/Circle.cpp" "src/primitives/StarFrame.h" "src/primitives/StarFrame.cpp" "src/primitives/FancyStar.h" "src/utility/Color.h")
+target_sources(Playground PRIVATE ${Playground_SOURCES} "src/KDron.h" "src/KDron.cpp")
 
 # Playground include dirs
 target_include_directories(Playground PRIVATE
