@@ -8,10 +8,12 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include "cube.h"
-#include "KDron.h"
-#include "cameraprogram.h"
+#include "torus.h"
+#include "sphere.h"
+#include "plane.h"
+#include "texturecameraprogram.h"
 #include "matma.h"
+#include "texture.h"
 
 class Window{
  public:
@@ -20,33 +22,26 @@ class Window{
     void Resize(int new_width, int new_height);
     void KeyEvent(int key, int scancode, int action, int mods);
     void Run(void);
-
-    void ZoomUp();
-    void ZoomDown();
-    void SetCameraZoom();
-
-    void ChangeToPerspectiveProjection();
-    void ChangeToOrthoPerspective();
-
     operator GLFWwindow*(){return window_;}
  private:
     int width_;
     int height_;
-
-    const float zoom_factor_ = 0.05f;
-    float zoom_ = 0.0f;
-    const float initial_z_translation = -2;
-
-    bool is_using_perspective_projection_ = true;
-
-    bool show_cube_ = true;
     const char* title_;
     GLFWwindow* window_;
 
-    Cube cube_;
-    KDron kdron_;
-    
-    ModelProgram program_;
+    Torus torus_;
+    Sphere planet_uranus_;
+    Sphere moon_umbriel_;
+    Plane plane_;
+
+    TextureCameraProgram  program_;
+
+    Texture ice_texture_;
+    Texture color_texture_;
+    Texture uranus_texture_;
+    Texture moon_texture_;
+    Texture space_texture_;
+
     clock_t last_time_;
 
     Mat4 view_matrix_;
@@ -54,6 +49,8 @@ class Window{
 
     void InitModels();
     void InitPrograms();
+    void InitTextures();
+
     void SetViewMatrix() const;
     void SetProjectionMatrix() const;
 

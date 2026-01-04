@@ -13,13 +13,6 @@ public:
                                        float aspect_ratio,
                                        float near_plane,
                                        float far_plane);
-
-    static Mat4 CreateOrthoProjectionMatrix(
-        float left, float right,
-        float bottom, float top,
-        float near_plane,
-        float far_plane);
-
     void RotateAboutX(float angle); //gedrees
     void RotateAboutY(float angle); //gedrees
     void RotateAboutZ(float angle); //gedrees

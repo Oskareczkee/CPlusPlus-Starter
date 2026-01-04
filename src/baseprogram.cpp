@@ -6,7 +6,6 @@
 #include <fstream>
 #include <cstring>
 #include <cstdlib>
-#include <filesystem>
 
 using namespace std;
 
@@ -77,7 +76,7 @@ GLuint BaseProgram::LoadAndCompileShaderOrDie(const char * source_file, GLenum t
 
     }
     else{ //file was not opened
-        cerr<<"Could not open the file "<<source_file<<std::filesystem::current_path()<<endl;
+        cerr<<"Could not open the file "<<source_file<<endl;
          glfwTerminate();
          exit(EXIT_FAILURE);
     }

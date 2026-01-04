@@ -35,7 +35,7 @@ file(GLOB_RECURSE Playground_SOURCES CONFIGURE_DEPENDS
 )
 
 #Added automatically by vsc
-target_sources(Playground PRIVATE ${Playground_SOURCES} "src/KDron.h" "src/KDron.cpp")
+target_sources(Playground PRIVATE ${Playground_SOURCES} "src/sphere.h" "src/sphere.cpp")
 
 # Playground include dirs
 target_include_directories(Playground PRIVATE

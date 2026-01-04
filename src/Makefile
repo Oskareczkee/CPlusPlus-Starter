@@ -1,4 +1,4 @@
-NAME=cube
+NAME=torus
 CXX=g++
 SOURCES = $(wildcard *.cpp)
 OBJECTS = $(SOURCES:.cpp=.o)
@@ -31,11 +31,11 @@ $(EXECUTABLE): $(OBJECTS)
 	$(CXX) $(OBJECTS) -o $@ $(LDFLAGS) $(LIBS)
 
 run: $(EXECUTABLE)
-	./$(EXECUTABLE) -sync -gldebug
+	./$(EXECUTABLE)
 -include $(SOURCES:%.cpp=%.d)
 
 zip: clean
-	zip -R $(NAME) *.h *.cpp *.glsl Makefile
+	zip -R $(NAME) *.h *.cpp *.glsl *.tga Makefile
 ok: run
 	find . -type f -not -name '*.zip' -not -name 'ok' -print0 | xargs -0 rm --
 	ok2

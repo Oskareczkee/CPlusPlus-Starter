@@ -8,20 +8,42 @@
 
 #include "glerror.h"
 
-const char* kVertexShader= RESOURCES_PATH "/SimpleShader.vertex.glsl";
-const char* kFragmentShader= RESOURCES_PATH "/SimpleShader.fragment.glsl";
+const char* kVertexShader=RESOURCES_PATH"/TextureShader.vertex.glsl";
+const char* kFragmentShader=RESOURCES_PATH"/TextureShader.fragment.glsl";
 
+const char* kIceTexureFile=RESOURCES_PATH"/ice.tga";
+const char* kColorTexureFile=RESOURCES_PATH"/texture.tga";
+
+//3+2+2+1+7=15, 15mod9 = 6
+const char* kPlanetUranusTextureFile = RESOURCES_PATH"/uranusmap.tga";
+const char* kMoonUmbrielTextureFile = RESOURCES_PATH"/umbriel.tga";
+const char* kSpaceTextureFile = RESOURCES_PATH"/space.tga";
+
+const int kPlaneM = 30;
+const int kPlaneN = 40;
+
+const int kTorusM = 20;
+const int kTorusN = 30;
+const float kTorusR = 2;
+const float kTorus_r = 0.75;
+
+const int kUranusM = 20;
+const int kUranusN = 30;
+const float kUranusR = 2;
+
+const int kUmbrielM = 20;
+const int kUmbrielN = 30;
+const float kUmbrielR = .25;
+const float kUmbrielOffset = 2.5;
+float UmbrielAngle = 0;
+
+//10 deg/sec around planet
+const float kUmbrielSpeed = 2*M_PI/36;
 
 Window::Window(const char * title, int width, int height){
     title_ = title;
     width_ = width;
     height_ = height;
-    cube_.SetInitAngle(15);
-    cube_.SetVelocity(45);
-
-    kdron_.SetInitAngle(15);
-    kdron_.SetVelocity(45);
-
     last_time_ = 0;
 }
 
@@ -33,10 +55,11 @@ void Window::Initialize(int major_gl_version, int minor_gl_version){
 
     std::cout << "OpenGL initialized: OpenGL version: " << glGetString(GL_VERSION) << " GLSL version: " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
+    InitTextures();
     InitModels();
     InitPrograms();
 
-    view_matrix_.Translate(0, 0, initial_z_translation);
+    view_matrix_.Translate(0, -1, -8);
     SetViewMatrix();
 
     projection_matrix_ = Mat4::CreatePerspectiveProjectionMatrix(60, (float)width_/(float)height_, 0.1f, 100.0f);
@@ -44,7 +67,7 @@ void Window::Initialize(int major_gl_version, int minor_gl_version){
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClearColor(0.25f, 0.75f, 0.35f, 0.0f);
 
 }
 
@@ -60,6 +83,8 @@ void Window::InitGlfwOrDie(int major_gl_version, int minor_gl_version){
 #ifdef DEBUG
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GLFW_TRUE);
 #endif
+    glfwWindowHint(GLFW_SAMPLES, 8);
+    glEnable(GL_MULTISAMPLE);
     window_ = glfwCreateWindow(width_, height_, title_, nullptr, nullptr);
     if (!window_){
         std::cerr << "ERROR: Could not create a new rendering window" << std::endl;
@@ -99,13 +124,35 @@ void Window::InitGlewOrDie(){
 
 }
 
+void Window::InitTextures(){
+    color_texture_.Initialize(kColorTexureFile);
+    ice_texture_.Initialize(kIceTexureFile);
+    uranus_texture_.Initialize(kPlanetUranusTextureFile);
+    moon_texture_.Initialize(kMoonUmbrielTextureFile);
+    space_texture_.Initialize(kSpaceTextureFile);
+}
+
 void Window::InitModels(){
-    cube_.Initialize();
-    kdron_.Initialize();
+    plane_.Initialize(kPlaneM, kPlaneN);
+    plane_.SetTexture(space_texture_);
+    plane_.SetTextureUnit(GL_TEXTURE0);
+
+    torus_.Initialize(kTorusM, kTorusN, kTorusR, kTorus_r);
+    torus_.SetTexture(color_texture_);
+    torus_.SetTextureUnit(GL_TEXTURE0);
+
+    planet_uranus_.Initialize(kUranusN, kUranusN, kUranusR);
+    planet_uranus_.SetTexture(uranus_texture_);
+    planet_uranus_.SetTextureUnit(GL_TEXTURE0);
+
+    moon_umbriel_.Initialize(kUmbrielN, kUmbrielN, kUmbrielR);
+    moon_umbriel_.SetTexture(moon_texture_);
+    moon_umbriel_.SetTextureUnit(GL_TEXTURE0);
 }
 
 void Window::InitPrograms(){
     program_.Initialize(kVertexShader, kFragmentShader);
+    program_.SetTextureUnit(0);
 }
 
 void Window::SetViewMatrix() const{
@@ -118,72 +165,11 @@ void Window::SetProjectionMatrix() const{
     program_.SetProjectionMatrix(projection_matrix_);
 }
 
-void Window::ZoomUp()
-{
-    this->zoom_ += zoom_factor_;
-
-    //do not allow for too big zoom
-    if (this->zoom_ > 10.0f) this->zoom_ = 10.0f;
-    SetCameraZoom();
-}
-
-void Window::ZoomDown()
-{
-    this->zoom_ -= zoom_factor_;
-
-    //do not allow for too small zoom
-    if (this->zoom_ < -10.0f) this->zoom_ = -10.0f;
-    SetCameraZoom();
-}
-
-void Window::SetCameraZoom()
-{
-    view_matrix_.SetUnitMatrix();
-    view_matrix_.Translate(0, 0, initial_z_translation + zoom_);
-    SetViewMatrix();
-}
-
-void Window::ChangeToPerspectiveProjection()
-{
-    if (is_using_perspective_projection_)
-        return; //perspective projection is already set
-
-    is_using_perspective_projection_ = !is_using_perspective_projection_;
-    projection_matrix_ = Mat4::CreatePerspectiveProjectionMatrix(60, (float)width_ / (float)height_, 0.1f, 100.0f);
-
-    SetProjectionMatrix();
-}
-
-void Window::ChangeToOrthoPerspective()
-{
-    if (!is_using_perspective_projection_)
-        return; //ortho projection is already set
-
-    is_using_perspective_projection_ = !is_using_perspective_projection_;
-
-    float aspect = (float)width_ / (float)height_;
-    float orto_height = 1;
-    float orto_width = orto_height * aspect;
-
-    projection_matrix_ = Mat4::CreateOrthoProjectionMatrix( -orto_width/2, orto_width/2,
-                                                            -orto_height/2, orto_height/2,
-                                                            0.1f, 100.0f);
-
-    SetProjectionMatrix();
-}
 
 void Window::Resize(int new_width, int new_height){
     width_ = new_width;
     height_ = new_height;
-
-    float aspect = (float)width_ / (float)height_;
-    float orto_height = 1;
-    float orto_width = orto_height * aspect;
-
-    projection_matrix_ = is_using_perspective_projection_ ? 
-                        Mat4::CreatePerspectiveProjectionMatrix(60, (float)width_/(float)height_, 0.1f, 100.0f) :
-                        Mat4::CreateOrthoProjectionMatrix(-orto_width / 2, orto_width / 2, -orto_height / 2, orto_height / 2, 0.1f, 100.0f);
-
+    projection_matrix_ = Mat4::CreatePerspectiveProjectionMatrix(60, (float)width_/(float)height_, 0.1f, 100.0f);
     SetProjectionMatrix();
     glViewport(0, 0, width_, height_);
 }
@@ -195,63 +181,37 @@ void Window::KeyEvent(int key, int /*scancode*/, int action, int /*mods*/){
                 glfwSetWindowShouldClose(window_, GLFW_TRUE);
             break;
             case GLFW_KEY_LEFT:
-                this->show_cube_ ? cube_.Rotate(0, 10, 0) : kdron_.Rotate(0, 10, 0);
+                planet_uranus_.SlowDown();
+                moon_umbriel_.SlowDown();
+                //torus_.SlowDown();
             break;
             case GLFW_KEY_RIGHT:
-                this->show_cube_ ? cube_.Rotate(0, -10, 0) : kdron_.Rotate(0, -10, 0);
+                planet_uranus_.SpeedUp();
+                moon_umbriel_.SpeedUp();
+                //torus_.SpeedUp();
             break;
-            case GLFW_KEY_UP:
-                this->show_cube_ ? cube_.Rotate(-10,0,0) : kdron_.Rotate(-10, 0, 0);
-                break;
-            case GLFW_KEY_DOWN:
-                this->show_cube_ ? cube_.Rotate(10, 0, 0) : kdron_.Rotate(10, 0, 0);
-                break;
             case GLFW_KEY_SPACE:
-                this->show_cube_ ? cube_.ToggleAnimated() : kdron_.ToggleAnimated();
-                break;
-            case GLFW_KEY_PAGE_UP:
-                this->ZoomUp();
-                break;
-            case GLFW_KEY_PAGE_DOWN:
-                this->ZoomDown();
-                break;
-            case GLFW_KEY_HOME:
-                ChangeToPerspectiveProjection();
-                break;
-            case GLFW_KEY_END:
-                ChangeToOrthoPerspective();
-                break;
+                planet_uranus_.ToggleAnimated();
+                moon_umbriel_.ToggleAnimated();
+                //torus_.ToggleAnimated();
             break;
-
-            //switch from kdron to cube and vice versa
-            case GLFW_KEY_C:
-                this->show_cube_ = !this->show_cube_;
-                break;
             default:
-                break;
+            break;
         }
     }
     else if(action == GLFW_REPEAT){
         switch (key){
-        case GLFW_KEY_LEFT:
-            this->show_cube_ ? cube_.Rotate(0, 10, 0) : kdron_.Rotate(0, 10, 0);
+            case GLFW_KEY_LEFT:
+                planet_uranus_.SlowDown();
+                moon_umbriel_.SlowDown();
+                //torus_.SlowDown();
             break;
-        case GLFW_KEY_RIGHT:
-            this->show_cube_ ? cube_.Rotate(0, -10, 0) : kdron_.SlowDown();
+            case GLFW_KEY_RIGHT:
+                planet_uranus_.SpeedUp();
+                moon_umbriel_.SpeedUp();
+                //torus_.SpeedUp();
             break;
-        case GLFW_KEY_UP:
-            this->show_cube_ ? cube_.Rotate(-10, 0, 0) : kdron_.SlowDown();
-            break;
-        case GLFW_KEY_DOWN:
-            this->show_cube_ ? cube_.Rotate(10, 0, 0) : kdron_.SlowDown();
-            break;
-        case GLFW_KEY_PAGE_UP:
-            this->ZoomUp();
-            break;
-        case GLFW_KEY_PAGE_DOWN:
-            this->ZoomDown();
-            break;
-        default:
+            default:
             break;
         }
     }
@@ -262,74 +222,38 @@ void Window::Run(void){
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         clock_t now = clock();
         if (last_time_ == 0) last_time_ = now;
-        this->show_cube_ ? 
-                        cube_.Move((float)(now - last_time_) / CLOCKS_PER_SEC):
-                        kdron_.Move((float)(now - last_time_) / CLOCKS_PER_SEC);
+
+        float delta_t =(float)(now - last_time_) / CLOCKS_PER_SEC;
+
+        //make ready for transforms
+        planet_uranus_.MakeReadyForTransforms();
+        moon_umbriel_.MakeReadyForTransforms();
+
+        //move all planets - rotations before translation, otherwise we will get wrong result
+        //torus_.Move((float)(now - last_time_) / CLOCKS_PER_SEC);
+        planet_uranus_.Move(delta_t);
+        moon_umbriel_.Move(delta_t);
+
+        //transform moon
+
+        UmbrielAngle += kUmbrielSpeed * delta_t;
+        if (UmbrielAngle >= 2 * M_PI) UmbrielAngle -= 2 * M_PI;
+
+        //rotate around x-z axis with offset
+        moon_umbriel_.Translate(kUmbrielOffset * cos(UmbrielAngle),
+                                0,
+                                -kUmbrielOffset * sin(UmbrielAngle));
+
+
         last_time_ = now;
 
-        this->show_cube_ ? cube_.Draw(program_) : kdron_.Draw(program_);
+        planet_uranus_.Draw(program_);
+        moon_umbriel_.Draw(program_);
+        //torus_.Draw(program_);
+        plane_.Draw(program_);
+
         glfwSwapBuffers(window_);
         glfwPollEvents();
     }
 
 }
-
-
-/*
-OLD CODE FOR COPYING PURPOSES
-void Window::KeyEvent(int key, int, int action, int){
-    if (action == GLFW_PRESS) {
-        switch (key) {
-        case GLFW_KEY_ESCAPE:
-            glfwSetWindowShouldClose(window_, GLFW_TRUE);
-            break;
-        case GLFW_KEY_LEFT:
-            this->show_cube_ ? cube_.SlowDown() : kdron_.SlowDown();
-            break;
-        case GLFW_KEY_RIGHT:
-            this->show_cube_ ? cube_.SpeedUp() : kdron_.SpeedUp();
-            break;
-        case GLFW_KEY_SPACE:
-            this->show_cube_ ? cube_.ToggleAnimated() : kdron_.ToggleAnimated();
-            break;
-
-            //switch from kdron to cube and vice versa
-        case GLFW_KEY_C:
-            this->show_cube_ = !this->show_cube_;
-            break;
-        default:
-            break;
-        }
-    }
-    else if (action == GLFW_REPEAT) {
-        switch (key) {
-        case GLFW_KEY_LEFT:
-            this->show_cube_ ? cube_.SlowDown() : kdron_.SlowDown();
-            break;
-        case GLFW_KEY_RIGHT:
-            this->show_cube_ ? cube_.SpeedUp() : kdron_.SpeedUp();
-            break;
-        default:
-            break;
-        }
-    }
-}
-
-void Window::Run(void) {
-    while (!glfwWindowShouldClose(window_)) {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        clock_t now = clock();
-        if (last_time_ == 0) last_time_ = now;
-        this->show_cube_ ?
-            cube_.Move((float)(now - last_time_) / CLOCKS_PER_SEC) :
-            kdron_.Move((float)(now - last_time_) / CLOCKS_PER_SEC);
-        last_time_ = now;
-
-        this->show_cube_ ? cube_.Draw(program_) : kdron_.Draw(program_);
-        glfwSwapBuffers(window_);
-        glfwPollEvents();
-    }
-
-}
-
-*/
